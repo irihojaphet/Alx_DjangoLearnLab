@@ -129,36 +129,16 @@ def query_librarian_for_library():
     try:
         library = Library.objects.get(name=library_name)
         
-        # Method 1: Access librarian through related_name (reverse lookup)
-        try:
-            librarian = library.librarian  # Using related_name='librarian'
-            print(f"\nLibrarian for {library_name}:")
-            print(f"  Name: {librarian.name}")
-        except Librarian.DoesNotExist:
-            print(f"  No librarian assigned to {library_name}")
-            print("  Note: Create a librarian for this library first to see results")
+        # Retrieve the librarian for a library using Librarian.objects.get(library=...)
+        librarian = Librarian.objects.get(library=library)
+        print(f"\nLibrarian for {library_name}:")
+        print(f"  Name: {librarian.name}")
     except Library.DoesNotExist:
         print(f"  Library '{library_name}' not found in database")
-    
-    # Method 2: Get librarian directly
-    print("\nAlternative method - Get librarian directly:")
-    try:
-        librarian = Librarian.objects.get(library__name=library_name)
-        print(f"  Librarian: {librarian.name}")
-        print(f"  Library: {librarian.library.name}")
+        print("  Note: Create a library first to see results")
     except Librarian.DoesNotExist:
-        print(f"  No librarian found for library '{library_name}'")
-    
-    # Method 3: Check if library has a librarian
-    print("\nAlternative method - Check if library has librarian:")
-    try:
-        library = Library.objects.get(name=library_name)
-        if hasattr(library, 'librarian'):
-            print(f"  {library_name} has librarian: {library.librarian.name}")
-        else:
-            print(f"  {library_name} does not have a librarian assigned")
-    except Library.DoesNotExist:
-        print(f"  Library '{library_name}' not found")
+        print(f"  No librarian assigned to {library_name}")
+        print("  Note: Create a librarian for this library first to see results")
     
     print()
 

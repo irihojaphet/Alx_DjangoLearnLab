@@ -9,7 +9,7 @@ def list_books(request):
     Function-based view that lists all books stored in the database.
     Renders a list of book titles and their authors.
     """
-    books = Book.objects.all().select_related('author')
+    books = Book.objects.all()
     return render(request, 'relationship_app/list_books.html', {'books': books})
 
 
@@ -21,4 +21,3 @@ class LibraryDetailView(DetailView):
     model = Library
     template_name = 'relationship_app/library_detail.html'
     context_object_name = 'library'
-    pk_url_kwarg = 'pk'

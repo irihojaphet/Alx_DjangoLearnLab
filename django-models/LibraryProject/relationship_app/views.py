@@ -1,25 +1,27 @@
 from django.shortcuts import render, redirect
 from django.views.generic.detail import DetailView
-from django.contrib.auth.views import LoginView, LogoutView
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import login
 from .models import Book
 from .models import Library
 
 def list_books(request):
+    """Display a list of all books."""
     books = Book.objects.all()
     return render(request, 'relationship_app/list_books.html', {'books': books})
 
 class LibraryDetailView(DetailView):
+    """Display details for a specific library."""
     model = Library
     template_name = 'relationship_app/library_detail.html'
     context_object_name = 'library'
 
-class CustomLoginView(LoginView):
-    template_name = 'relationship_app/login.html'
-    redirect_authenticated_user = True
-
 def register(request):
+    """
+    Handle user registration.
+    GET: Display registration form
+    POST: Process registration, create user, auto-login, redirect
+    """
     if request.method == 'POST':
         form = UserCreationForm(request.POST)
         if form.is_valid():

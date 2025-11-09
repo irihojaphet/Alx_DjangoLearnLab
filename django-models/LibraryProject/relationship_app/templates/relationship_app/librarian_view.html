@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Librarian View</title>
+</head>
+<body>
+    <h1>Librarian Dashboard</h1>
+    <p>Welcome, {{ user.username }}! You are viewing the Librarian page.</p>
+    <p>Your role: {{ user.profile.role }}</p>
+    <a href="{% url 'relationship_app:logout' %}">Logout</a>
+</body>
+</html>
+

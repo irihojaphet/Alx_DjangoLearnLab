@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Member View</title>
+</head>
+<body>
+    <h1>Member Dashboard</h1>
+    <p>Welcome, {{ user.username }}! You are viewing the Member page.</p>
+    <p>Your role: {{ user.profile.role }}</p>
+    <a href="{% url 'relationship_app:logout' %}">Logout</a>
+</body>
+</html>
+

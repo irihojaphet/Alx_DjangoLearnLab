@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book Detail</title>
+</head>
+<body>
+    <h1>Book Detail</h1>
+    
+    <h2>{{ book.title|escape }}</h2>
+    <p><strong>Author:</strong> {{ book.author|escape }}</p>
+    <p><strong>Publication Year:</strong> {{ book.publication_year }}</p>
+    
+    <p>
+        <a href="{% url 'bookshelf:edit_book' book.pk %}">Edit</a> |
+        <a href="{% url 'bookshelf:delete_book' book.pk %}">Delete</a> |
+        <a href="{% url 'bookshelf:book_list' %}">Back to List</a>
+    </p>
+</body>
+</html>
+

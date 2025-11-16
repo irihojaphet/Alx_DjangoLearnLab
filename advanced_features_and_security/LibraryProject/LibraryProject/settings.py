@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/5.2/ref/settings/
 """
 
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -20,12 +21,16 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-aa@ka2@_t!h=d_2-z6o3%j@1=+ioel3c+m&84rrl+v_e&_it89'
+# In production, use environment variable: SECRET_KEY = os.environ.get('SECRET_KEY')
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-aa@ka2@_t!h=d_2-z6o3%j@1=+ioel3c+m&84rrl+v_e&_it89')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+# Set DEBUG=False in production. Use environment variable for production deployment.
+DEBUG = os.environ.get('DEBUG', 'True').lower() == 'true'
 
-ALLOWED_HOSTS = []
+# ALLOWED_HOSTS: List of host/domain names this site can serve.
+# In production, set this to your actual domain names.
+ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '').split(',') if os.environ.get('ALLOWED_HOSTS') else []
 
 
 # Application definition
@@ -49,6 +54,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    # Custom security middleware for Content Security Policy headers
+    'bookshelf.middleware.CSPMiddleware',
 ]
 
 ROOT_URLCONF = 'LibraryProject.urls'
@@ -134,3 +141,58 @@ AUTH_USER_MODEL = 'bookshelf.CustomUser'
 LOGIN_URL = 'relationship_app:login'
 LOGIN_REDIRECT_URL = 'relationship_app:list_books'
 LOGOUT_REDIRECT_URL = 'relationship_app:logout'
+
+
+# =============================================================================
+# SECURITY SETTINGS
+# =============================================================================
+
+# SECURE_BROWSER_XSS_FILTER: Enables browser's XSS filtering protection
+# This adds X-XSS-Protection header to help protect against XSS attacks
+SECURE_BROWSER_XSS_FILTER = True
+
+# X_FRAME_OPTIONS: Controls whether site can be displayed in a frame
+# Set to 'DENY' to prevent clickjacking attacks by blocking any domain from framing the page
+X_FRAME_OPTIONS = 'DENY'
+
+# SECURE_CONTENT_TYPE_NOSNIFF: Prevents browsers from MIME-sniffing response content types
+# Protects against MIME type sniffing vulnerabilities
+SECURE_CONTENT_TYPE_NOSNIFF = True
+
+# CSRF_COOKIE_SECURE: Ensures CSRF cookie is only sent over HTTPS connections
+# Set to True in production when using HTTPS
+# Note: Set to True only when HTTPS is properly configured, otherwise CSRF will fail
+CSRF_COOKIE_SECURE = os.environ.get('CSRF_COOKIE_SECURE', 'False').lower() == 'true'
+
+# SESSION_COOKIE_SECURE: Ensures session cookie is only sent over HTTPS connections
+# Set to True in production when using HTTPS
+# Note: Set to True only when HTTPS is properly configured, otherwise sessions will fail
+SESSION_COOKIE_SECURE = os.environ.get('SESSION_COOKIE_SECURE', 'False').lower() == 'true'
+
+# CSRF_COOKIE_HTTPONLY: Prevents JavaScript from accessing CSRF cookie (not supported by all browsers)
+# Additional protection against XSS attacks trying to steal CSRF token
+CSRF_COOKIE_HTTPONLY = False  # Django doesn't support this natively, but good practice if middleware added
+
+# SESSION_COOKIE_HTTPONLY: Prevents JavaScript from accessing session cookie
+# Protects session cookies from being accessed via JavaScript (XSS protection)
+SESSION_COOKIE_HTTPONLY = True
+
+# SESSION_COOKIE_SAMESITE: Helps protect against CSRF attacks
+# 'Strict' provides the strongest protection but may affect some user flows
+SESSION_COOKIE_SAMESITE = 'Lax'
+
+# SECURE_SSL_REDIRECT: Redirects all HTTP requests to HTTPS
+# Enable only in production with proper SSL certificate
+SECURE_SSL_REDIRECT = os.environ.get('SECURE_SSL_REDIRECT', 'False').lower() == 'true'
+
+# Content Security Policy (CSP) Settings
+# CSP helps prevent XSS attacks by specifying which domains are allowed to load resources
+# This is a basic CSP - adjust based on your application's needs
+CSP_DEFAULT_SRC = ("'self'",)
+CSP_SCRIPT_SRC = ("'self'", "'unsafe-inline'")  # 'unsafe-inline' needed for Django admin, but should be restricted
+CSP_STYLE_SRC = ("'self'", "'unsafe-inline'")  # 'unsafe-inline' needed for Django admin
+CSP_IMG_SRC = ("'self'", "data:",)
+CSP_FONT_SRC = ("'self'",)
+
+# Note: For production, consider using django-csp package for more advanced CSP configuration
+# Or set CSP headers via middleware manually

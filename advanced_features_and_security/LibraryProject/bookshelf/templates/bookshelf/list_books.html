@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book List</title>
+</head>
+<body>
+    <h1>Book List</h1>
+    <p><a href="{% url 'bookshelf:create_book' %}">Create New Book</a></p>
+    
+    {% if books %}
+        <ul>
+            {% for book in books %}
+                <li>
+                    <strong>{{ book.title|escape }}</strong> by {{ book.author|escape }} ({{ book.publication_year }})
+                    <a href="{% url 'bookshelf:book_detail' book.pk %}">View</a>
+                    <a href="{% url 'bookshelf:edit_book' book.pk %}">Edit</a>
+                    <a href="{% url 'bookshelf:delete_book' book.pk %}">Delete</a>
+                </li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No books available.</p>
+    {% endif %}
+    
+    <p><a href="{% url 'admin:index' %}">Admin</a></p>
+</body>
+</html>
+

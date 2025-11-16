@@ -28,24 +28,9 @@ For more information on permissions and groups, see PERMISSIONS_AND_GROUPS.md
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import permission_required, login_required
 from django.contrib import messages
-from django.forms import ModelForm
 from django.utils.html import escape
 from .models import Book
-
-
-class BookForm(ModelForm):
-    """
-    Form for Book model with automatic validation and sanitization.
-    
-    SECURITY: Django ModelForm automatically:
-    - Validates input data against model field definitions
-    - Sanitizes user input to prevent SQL injection
-    - Escapes HTML in templates (when using {{ form.field }})
-    - Prevents XSS attacks through Django's template escaping
-    """
-    class Meta:
-        model = Book
-        fields = ['title', 'author', 'publication_year']
+from .forms import ExampleForm
 
 
 @login_required
@@ -62,7 +47,7 @@ def book_list(request):
     # SECURITY: Django ORM automatically uses parameterized queries
     # No string formatting or raw SQL, preventing SQL injection
     books = Book.objects.all()
-    return render(request, 'bookshelf/list_books.html', {'books': books})
+    return render(request, 'bookshelf/book_list.html', {'books': books})
 
 
 @login_required
@@ -99,7 +84,7 @@ def create_book(request):
     if request.method == 'POST':
         # SECURITY: Django ModelForm automatically validates and sanitizes input
         # CSRF token is validated by CsrfViewMiddleware before this view runs
-        form = BookForm(request.POST)
+        form = ExampleForm(request.POST)
         if form.is_valid():
             # SECURITY: form.save() uses Django ORM with parameterized queries
             # All field values are validated and escaped
@@ -107,7 +92,7 @@ def create_book(request):
             messages.success(request, 'Book created successfully.')
             return redirect('bookshelf:book_list')
     else:
-        form = BookForm()
+        form = ExampleForm()
     return render(request, 'bookshelf/create_book.html', {'form': form})
 
 
@@ -129,14 +114,14 @@ def edit_book(request, pk):
     if request.method == 'POST':
         # SECURITY: Form instance ensures we're updating the correct object
         # All input is validated and sanitized by Django ModelForm
-        form = BookForm(request.POST, instance=book)
+        form = ExampleForm(request.POST, instance=book)
         if form.is_valid():
             # SECURITY: ORM automatically handles SQL escaping
             form.save()
             messages.success(request, 'Book updated successfully.')
             return redirect('bookshelf:book_list')
     else:
-        form = BookForm(instance=book)
+        form = ExampleForm(instance=book)
     return render(request, 'bookshelf/edit_book.html', {'form': form, 'book': book})
 
 

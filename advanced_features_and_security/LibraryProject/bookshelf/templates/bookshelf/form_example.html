@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Example Form</title>
+</head>
+<body>
+    <h1>Example Form with CSRF Protection</h1>
+    
+    <p>This form demonstrates secure form handling with CSRF token protection.</p>
+    
+    {% if messages %}
+        <ul>
+            {% for message in messages %}
+                <li>{{ message }}</li>
+            {% endfor %}
+        </ul>
+    {% endif %}
+    
+    <form method="post">
+        {% csrf_token %}
+        
+        <p>
+            <label for="id_title">Title:</label>
+            {{ form.title }}
+            {% if form.title.errors %}
+                <span style="color: red;">{{ form.title.errors }}</span>
+            {% endif %}
+        </p>
+        
+        <p>
+            <label for="id_author">Author:</label>
+            {{ form.author }}
+            {% if form.author.errors %}
+                <span style="color: red;">{{ form.author.errors }}</span>
+            {% endif %}
+        </p>
+        
+        <p>
+            <label for="id_publication_year">Publication Year:</label>
+            {{ form.publication_year }}
+            {% if form.publication_year.errors %}
+                <span style="color: red;">{{ form.publication_year.errors }}</span>
+            {% endif %}
+        </p>
+        
+        <p>
+            <button type="submit">Submit</button>
+            <a href="{% url 'bookshelf:book_list' %}">Back to List</a>
+        </p>
+    </form>
+    
+    <h2>Security Features:</h2>
+    <ul>
+        <li>CSRF Token Protection: {% csrf_token %} prevents Cross-Site Request Forgery attacks</li>
+        <li>Input Validation: Django forms validate all input automatically</li>
+        <li>XSS Protection: All output is automatically escaped in templates</li>
+        <li>SQL Injection Prevention: Django ORM uses parameterized queries</li>
+    </ul>
+</body>
+</html>
+

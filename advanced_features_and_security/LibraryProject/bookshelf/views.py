@@ -4,7 +4,7 @@ Views for Book management with permission-based access control.
 This module implements CRUD operations for the Book model, with each view
 protected by specific permissions:
 
-- list_books and book_detail: Require 'bookshelf.can_view' permission
+- book_list and book_detail: Require 'bookshelf.can_view' permission
 - create_book: Requires 'bookshelf.can_create' permission
 - edit_book: Requires 'bookshelf.can_edit' permission
 - delete_book: Requires 'bookshelf.can_delete' permission
@@ -31,7 +31,7 @@ class BookForm(ModelForm):
 
 @login_required
 @permission_required('bookshelf.can_view', raise_exception=True)
-def list_books(request):
+def book_list(request):
     """Display a list of all books. Requires can_view permission."""
     books = Book.objects.all()
     return render(request, 'bookshelf/list_books.html', {'books': books})
@@ -54,7 +54,7 @@ def create_book(request):
         if form.is_valid():
             form.save()
             messages.success(request, 'Book created successfully.')
-            return redirect('bookshelf:list_books')
+            return redirect('bookshelf:book_list')
     else:
         form = BookForm()
     return render(request, 'bookshelf/create_book.html', {'form': form})
@@ -70,7 +70,7 @@ def edit_book(request, pk):
         if form.is_valid():
             form.save()
             messages.success(request, 'Book updated successfully.')
-            return redirect('bookshelf:list_books')
+            return redirect('bookshelf:book_list')
     else:
         form = BookForm(instance=book)
     return render(request, 'bookshelf/edit_book.html', {'form': form, 'book': book})

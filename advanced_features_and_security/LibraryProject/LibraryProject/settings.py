@@ -160,13 +160,19 @@ X_FRAME_OPTIONS = 'DENY'
 SECURE_CONTENT_TYPE_NOSNIFF = True
 
 # CSRF_COOKIE_SECURE: Ensures CSRF cookie is only sent over HTTPS connections
+# When True, the CSRF cookie will only be sent over HTTPS, preventing interception over HTTP
+# This protects the CSRF token from being stolen via man-in-the-middle attacks
 # Set to True in production when using HTTPS
-# Note: Set to True only when HTTPS is properly configured, otherwise CSRF will fail
+# IMPORTANT: Set to True only when HTTPS is properly configured, otherwise CSRF will fail
+# Without HTTPS, users will not be able to submit forms
 CSRF_COOKIE_SECURE = os.environ.get('CSRF_COOKIE_SECURE', 'False').lower() == 'true'
 
 # SESSION_COOKIE_SECURE: Ensures session cookie is only sent over HTTPS connections
+# When True, the session cookie will only be sent over HTTPS connections
+# This prevents session hijacking attacks where cookies are intercepted over unencrypted connections
 # Set to True in production when using HTTPS
-# Note: Set to True only when HTTPS is properly configured, otherwise sessions will fail
+# IMPORTANT: Set to True only when HTTPS is properly configured, otherwise sessions will fail
+# Without HTTPS, users will not be able to maintain login sessions
 SESSION_COOKIE_SECURE = os.environ.get('SESSION_COOKIE_SECURE', 'False').lower() == 'true'
 
 # CSRF_COOKIE_HTTPONLY: Prevents JavaScript from accessing CSRF cookie (not supported by all browsers)
@@ -183,7 +189,32 @@ SESSION_COOKIE_SAMESITE = 'Lax'
 
 # SECURE_SSL_REDIRECT: Redirects all HTTP requests to HTTPS
 # Enable only in production with proper SSL certificate
+# This ensures all HTTP requests are automatically redirected to HTTPS
+# IMPORTANT: Only set to True when SSL certificate is properly configured
 SECURE_SSL_REDIRECT = os.environ.get('SECURE_SSL_REDIRECT', 'False').lower() == 'true'
+
+# HTTP Strict Transport Security (HSTS) Settings
+# HSTS instructs browsers to only access the site via HTTPS for a specified period
+
+# SECURE_HSTS_SECONDS: The number of seconds the HSTS policy should remain in effect
+# 31536000 seconds = 1 year
+# This tells browsers to only access the site via HTTPS for the next year
+# IMPORTANT: Only enable in production after thoroughly testing HTTPS setup
+# Once enabled and deployed, browsers will cache this policy for the specified duration
+SECURE_HSTS_SECONDS = int(os.environ.get('SECURE_HSTS_SECONDS', '0'))
+
+# SECURE_HSTS_INCLUDE_SUBDOMAINS: Include all subdomains in the HSTS policy
+# When True, HSTS policy applies to all subdomains of the current domain
+# Example: If set for example.com, it also applies to www.example.com, api.example.com, etc.
+# IMPORTANT: Only enable if all subdomains support HTTPS properly
+SECURE_HSTS_INCLUDE_SUBDOMAINS = os.environ.get('SECURE_HSTS_INCLUDE_SUBDOMAINS', 'False').lower() == 'true'
+
+# SECURE_HSTS_PRELOAD: Allow the site to be included in browser HSTS preload lists
+# When True, the site can be submitted to browser HSTS preload lists (e.g., hstspreload.org)
+# Preloading ensures browsers always use HTTPS even before the first visit
+# IMPORTANT: Only enable if you've committed to long-term HTTPS support
+# Once added to preload lists, it's difficult to remove
+SECURE_HSTS_PRELOAD = os.environ.get('SECURE_HSTS_PRELOAD', 'False').lower() == 'true'
 
 # Content Security Policy (CSP) Settings
 # CSP helps prevent XSS attacks by specifying which domains are allowed to load resources

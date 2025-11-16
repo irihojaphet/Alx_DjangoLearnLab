@@ -5,7 +5,6 @@ from .models import Book, CustomUser
 # Register your models here.
 
 
-@admin.register(CustomUser)
 class CustomUserAdmin(BaseUserAdmin):
     """Admin configuration for CustomUser model."""
     list_display = ('username', 'email', 'first_name', 'last_name', 'date_of_birth', 'profile_photo', 'is_staff', 'is_active')
@@ -26,6 +25,8 @@ class CustomUserAdmin(BaseUserAdmin):
             'fields': ('username', 'email', 'password1', 'password2', 'date_of_birth', 'profile_photo'),
         }),
     )
+
+admin.site.register(CustomUser, CustomUserAdmin)
 
 
 @admin.register(Book)

@@ -193,6 +193,16 @@ SESSION_COOKIE_SAMESITE = 'Lax'
 # IMPORTANT: Only set to True when SSL certificate is properly configured
 SECURE_SSL_REDIRECT = os.environ.get('SECURE_SSL_REDIRECT', 'False').lower() == 'true'
 
+# SECURE_PROXY_SSL_HEADER: Tells Django to trust the X-Forwarded-Proto header from proxy
+# When Django is behind a reverse proxy (like Nginx or Apache) that terminates SSL,
+# the proxy forwards requests to Django with X-Forwarded-Proto header set to 'https'
+# This setting tells Django to trust this header to determine if the request was made over HTTPS
+# IMPORTANT: Only set this when behind a trusted reverse proxy
+# The tuple format is: (header name, expected value)
+# Common values: ('HTTP_X_FORWARDED_PROTO', 'https')
+# This is critical for proper HTTPS detection behind proxies
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
 # HTTP Strict Transport Security (HSTS) Settings
 # HSTS instructs browsers to only access the site via HTTPS for a specified period
 

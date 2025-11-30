@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',  # Django REST Framework for API development
+    'django_filters',  # Django Filter for advanced filtering capabilities
     'api',  # Our custom API app
 ]
 

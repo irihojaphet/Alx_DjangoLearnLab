@@ -303,7 +303,7 @@ class BookCreateViewTests(BookAPITestCase):
         Test creating a book with valid data when authenticated.
         Verifies that the book is created and returned with correct data.
         """
-        self.client.force_authenticate(user=self.user)
+        self.client.login(username='testuser', password='testpass123')
         url = reverse('api:book-create')
         data = {
             'title': 'Test Book',
@@ -329,7 +329,7 @@ class BookCreateViewTests(BookAPITestCase):
         from datetime import datetime
         future_year = datetime.now().year + 1
         
-        self.client.force_authenticate(user=self.user)
+        self.client.login(username='testuser', password='testpass123')
         url = reverse('api:book-create')
         data = {
             'title': 'Future Book',
@@ -346,7 +346,7 @@ class BookCreateViewTests(BookAPITestCase):
         Test that creating a book with missing required fields is rejected.
         Verifies that validation errors are returned.
         """
-        self.client.force_authenticate(user=self.user)
+        self.client.login(username='testuser', password='testpass123')
         url = reverse('api:book-create')
         data = {
             'title': 'Incomplete Book'
@@ -389,7 +389,7 @@ class BookUpdateViewTests(BookAPITestCase):
         Test updating a book with PUT (full update) when authenticated.
         Verifies that all fields are updated correctly.
         """
-        self.client.force_authenticate(user=self.user)
+        self.client.login(username='testuser', password='testpass123')
         url = reverse('api:book-update', kwargs={'pk': self.book1.id})
         data = {
             'title': 'Updated 1984',
@@ -411,7 +411,7 @@ class BookUpdateViewTests(BookAPITestCase):
         Test updating a book with PATCH (partial update) when authenticated.
         Verifies that only specified fields are updated.
         """
-        self.client.force_authenticate(user=self.user)
+        self.client.login(username='testuser', password='testpass123')
         url = reverse('api:book-update', kwargs={'pk': self.book1.id})
         data = {
             'title': 'Partially Updated 1984'
@@ -435,7 +435,7 @@ class BookUpdateViewTests(BookAPITestCase):
         from datetime import datetime
         future_year = datetime.now().year + 1
         
-        self.client.force_authenticate(user=self.user)
+        self.client.login(username='testuser', password='testpass123')
         url = reverse('api:book-update', kwargs={'pk': self.book1.id})
         data = {
             'title': '1984',
@@ -452,7 +452,7 @@ class BookUpdateViewTests(BookAPITestCase):
         Test updating a book that doesn't exist.
         Verifies that the endpoint returns 404 Not Found.
         """
-        self.client.force_authenticate(user=self.user)
+        self.client.login(username='testuser', password='testpass123')
         url = reverse('api:book-update', kwargs={'pk': 99999})
         data = {
             'title': 'Nonexistent Book',
@@ -490,7 +490,7 @@ class BookDeleteViewTests(BookAPITestCase):
         Verifies that the book is deleted and appropriate response is returned.
         """
         book_id = self.book1.id
-        self.client.force_authenticate(user=self.user)
+        self.client.login(username='testuser', password='testpass123')
         url = reverse('api:book-delete', kwargs={'pk': book_id})
         response = self.client.delete(url)
         
@@ -505,7 +505,7 @@ class BookDeleteViewTests(BookAPITestCase):
         Test deleting a book that doesn't exist.
         Verifies that the endpoint returns 404 Not Found.
         """
-        self.client.force_authenticate(user=self.user)
+        self.client.login(username='testuser', password='testpass123')
         url = reverse('api:book-delete', kwargs={'pk': 99999})
         response = self.client.delete(url)
         

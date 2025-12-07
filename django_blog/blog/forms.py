@@ -1,6 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
+from taggit.forms import TagWidget
 from .models import Post, Comment, Tag
 
 
@@ -88,10 +89,7 @@ class PostForm(forms.ModelForm):
                 'placeholder': 'Write your post content here...',
                 'rows': 15
             }),
-            'tags': forms.SelectMultiple(attrs={
-                'class': 'form-control',
-                'size': '5'
-            }),
+            'tags': TagWidget(),
         }
     
     def __init__(self, *args, **kwargs):

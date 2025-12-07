@@ -7,8 +7,8 @@ from django.contrib.auth.forms import AuthenticationForm
 from django.contrib import messages
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
 from django.urls import reverse_lazy
-from .models import Post
-from .forms import CustomUserCreationForm, UserProfileForm, PostForm
+from .models import Post, Comment
+from .forms import CustomUserCreationForm, UserProfileForm, PostForm, CommentForm
 
 
 def home(request):
@@ -88,6 +88,32 @@ class PostDetailView(DetailView):
     model = Post
     template_name = 'blog/post_detail.html'
     context_object_name = 'post'
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['comments'] = self.object.comments.all()
+        if self.request.user.is_authenticated:
+            context['comment_form'] = CommentForm()
+        return context
+    
+    def post(self, request, *args, **kwargs):
+        """Handle comment creation"""
+        self.object = self.get_object()
+        if request.user.is_authenticated:
+            form = CommentForm(request.POST)
+            if form.is_valid():
+                comment = form.save(commit=False)
+                comment.post = self.object
+                comment.author = request.user
+                comment.save()
+                messages.success(request, 'Your comment has been added successfully!')
+                return redirect('blog:post_detail', pk=self.object.pk)
+            else:
+                # If form is invalid, re-render the page with errors
+                context = self.get_context_data()
+                context['comment_form'] = form
+                return self.render_to_response(context)
+        return redirect('blog:post_detail', pk=self.object.pk)
 
 
 class PostCreateView(LoginRequiredMixin, CreateView):
@@ -129,4 +155,44 @@ class PostDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     
     def delete(self, request, *args, **kwargs):
         messages.success(self.request, 'Your post has been deleted successfully!')
+        return super().delete(request, *args, **kwargs)
+
+
+# Comment CRUD Views
+
+# Comment creation is handled in PostDetailView.post() method
+
+
+class CommentUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+    """Update an existing comment (author only)"""
+    model = Comment
+    form_class = CommentForm
+    template_name = 'blog/comment_form.html'
+    
+    def test_func(self):
+        comment = self.get_object()
+        return self.request.user == comment.author
+    
+    def form_valid(self, form):
+        messages.success(self.request, 'Your comment has been updated successfully!')
+        return super().form_valid(form)
+    
+    def get_success_url(self):
+        return reverse_lazy('blog:post_detail', kwargs={'pk': self.object.post.pk})
+
+
+class CommentDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
+    """Delete a comment (author only)"""
+    model = Comment
+    template_name = 'blog/comment_confirm_delete.html'
+    
+    def test_func(self):
+        comment = self.get_object()
+        return self.request.user == comment.author
+    
+    def get_success_url(self):
+        return reverse_lazy('blog:post_detail', kwargs={'pk': self.object.post.pk})
+    
+    def delete(self, request, *args, **kwargs):
+        messages.success(self.request, 'Your comment has been deleted successfully!')
         return super().delete(request, *args, **kwargs)

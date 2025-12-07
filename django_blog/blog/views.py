@@ -1,10 +1,14 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import login
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.contrib.auth.views import LoginView, LogoutView
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib import messages
-from .forms import CustomUserCreationForm, UserProfileForm
+from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
+from django.urls import reverse_lazy
+from .models import Post
+from .forms import CustomUserCreationForm, UserProfileForm, PostForm
 
 
 def home(request):
@@ -68,8 +72,61 @@ def profile(request):
     return render(request, 'blog/profile.html', {'form': form})
 
 
-def posts(request):
-    """Blog posts list view"""
-    from .models import Post
-    posts_list = Post.objects.all().order_by('-published_date')
-    return render(request, 'blog/posts.html', {'posts': posts_list})
+# Blog Post CRUD Views
+
+class PostListView(ListView):
+    """Display all blog posts"""
+    model = Post
+    template_name = 'blog/post_list.html'
+    context_object_name = 'posts'
+    ordering = ['-published_date']
+    paginate_by = 10
+
+
+class PostDetailView(DetailView):
+    """Display a single blog post"""
+    model = Post
+    template_name = 'blog/post_detail.html'
+    context_object_name = 'post'
+
+
+class PostCreateView(LoginRequiredMixin, CreateView):
+    """Create a new blog post (authenticated users only)"""
+    model = Post
+    form_class = PostForm
+    template_name = 'blog/post_form.html'
+    
+    def form_valid(self, form):
+        form.instance.author = self.request.user
+        messages.success(self.request, 'Your post has been created successfully!')
+        return super().form_valid(form)
+
+
+class PostUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+    """Update an existing blog post (author only)"""
+    model = Post
+    form_class = PostForm
+    template_name = 'blog/post_form.html'
+    
+    def test_func(self):
+        post = self.get_object()
+        return self.request.user == post.author
+    
+    def form_valid(self, form):
+        messages.success(self.request, 'Your post has been updated successfully!')
+        return super().form_valid(form)
+
+
+class PostDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
+    """Delete a blog post (author only)"""
+    model = Post
+    template_name = 'blog/post_confirm_delete.html'
+    success_url = reverse_lazy('blog:post_list')
+    
+    def test_func(self):
+        post = self.get_object()
+        return self.request.user == post.author
+    
+    def delete(self, request, *args, **kwargs):
+        messages.success(self.request, 'Your post has been deleted successfully!')
+        return super().delete(request, *args, **kwargs)

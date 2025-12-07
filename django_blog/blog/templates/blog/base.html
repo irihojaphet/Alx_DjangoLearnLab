@@ -12,8 +12,9 @@
         <nav>
             <ul>
                 <li><a href="{% url 'blog:home' %}">Home</a></li>
-                <li><a href="{% url 'blog:posts' %}">Blog Posts</a></li>
+                <li><a href="{% url 'blog:post_list' %}">Blog Posts</a></li>
                 {% if user.is_authenticated %}
+                    <li><a href="{% url 'blog:post_create' %}">New Post</a></li>
                     <li><a href="{% url 'blog:profile' %}">Profile</a></li>
                     <li><a href="{% url 'blog:logout' %}">Logout</a></li>
                 {% else %}

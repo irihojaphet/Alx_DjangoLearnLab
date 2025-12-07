@@ -193,3 +193,126 @@ footer {
     color: #333;
 }
 
+/* Post Detail Styles */
+.post-detail {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.post-detail h1 {
+    margin-bottom: 10px;
+    color: #333;
+}
+
+.post-detail .post-content {
+    margin-top: 20px;
+    padding: 20px;
+    background-color: white;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    line-height: 1.8;
+    white-space: pre-wrap;
+}
+
+/* Action Buttons */
+.action-buttons {
+    margin-bottom: 20px;
+}
+
+.post-actions {
+    margin-left: 15px;
+}
+
+.post-actions a {
+    margin-left: 10px;
+    font-size: 14px;
+    text-decoration: underline;
+}
+
+.btn-edit {
+    color: #007bff;
+}
+
+.btn-edit:hover {
+    color: #0056b3;
+}
+
+.btn-delete {
+    color: #dc3545;
+}
+
+.btn-delete:hover {
+    color: #c82333;
+}
+
+.btn.btn-delete {
+    background-color: #dc3545;
+    color: white;
+}
+
+.btn.btn-delete:hover {
+    background-color: #c82333;
+}
+
+/* Form Actions */
+.form-actions {
+    margin-top: 20px;
+    display: flex;
+    gap: 10px;
+}
+
+.form-actions .btn {
+    margin-right: 10px;
+}
+
+/* Read More Link */
+.read-more {
+    display: inline-block;
+    margin-top: 10px;
+    color: #333;
+    text-decoration: underline;
+    font-weight: bold;
+}
+
+.read-more:hover {
+    color: #555;
+}
+
+/* Pagination */
+.pagination {
+    margin-top: 30px;
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+}
+
+.pagination .btn {
+    padding: 8px 15px;
+    font-size: 14px;
+}
+
+.page-info {
+    margin: 0 15px;
+    font-weight: bold;
+}
+
+/* Delete Confirmation */
+.delete-confirmation {
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.post-preview {
+    background-color: white;
+    padding: 20px;
+    margin: 20px 0;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.delete-form {
+    margin-top: 20px;
+}
+

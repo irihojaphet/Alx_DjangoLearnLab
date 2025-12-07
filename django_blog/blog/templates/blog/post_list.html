@@ -1,0 +1,58 @@
+{% extends 'blog/base.html' %}
+
+{% block title %}Blog Posts - Django Blog{% endblock %}
+
+{% block content %}
+<h1>Blog Posts</h1>
+
+{% if user.is_authenticated %}
+    <div class="action-buttons">
+        <a href="{% url 'blog:post_create' %}" class="btn btn-primary">Create New Post</a>
+    </div>
+{% endif %}
+
+{% if posts %}
+    <div class="posts-list">
+        {% for post in posts %}
+            <div class="post-item">
+                <h2><a href="{% url 'blog:post_detail' post.pk %}">{{ post.title }}</a></h2>
+                <p class="post-meta">
+                    By <strong>{{ post.author.username }}</strong> on {{ post.published_date|date:"F d, Y" }}
+                    {% if user == post.author %}
+                        <span class="post-actions">
+                            <a href="{% url 'blog:post_update' post.pk %}" class="btn-edit">Edit</a>
+                            <a href="{% url 'blog:post_delete' post.pk %}" class="btn-delete">Delete</a>
+                        </span>
+                    {% endif %}
+                </p>
+                <p class="post-content">{{ post.content|truncatewords:50 }}</p>
+                <a href="{% url 'blog:post_detail' post.pk %}" class="read-more">Read more →</a>
+            </div>
+        {% endfor %}
+    </div>
+
+    {% if is_paginated %}
+        <div class="pagination">
+            {% if page_obj.has_previous %}
+                <a href="?page=1" class="btn">First</a>
+                <a href="?page={{ page_obj.previous_page_number }}" class="btn">Previous</a>
+            {% endif %}
+            
+            <span class="page-info">
+                Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+            </span>
+            
+            {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}" class="btn">Next</a>
+                <a href="?page={{ page_obj.paginator.num_pages }}" class="btn">Last</a>
+            {% endif %}
+        </div>
+    {% endif %}
+{% else %}
+    <p>No blog posts available yet.</p>
+    {% if user.is_authenticated %}
+        <p><a href="{% url 'blog:post_create' %}" class="btn btn-primary">Create the first post</a></p>
+    {% endif %}
+{% endif %}
+{% endblock %}
+

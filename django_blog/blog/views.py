@@ -160,7 +160,21 @@ class PostDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
 
 # Comment CRUD Views
 
-# Comment creation is handled in PostDetailView.post() method
+class CommentCreateView(LoginRequiredMixin, CreateView):
+    """Create a new comment (authenticated users only)"""
+    model = Comment
+    form_class = CommentForm
+    template_name = 'blog/post_detail.html'
+    
+    def form_valid(self, form):
+        post = get_object_or_404(Post, pk=self.kwargs['post_id'])
+        form.instance.post = post
+        form.instance.author = self.request.user
+        messages.success(self.request, 'Your comment has been added successfully!')
+        return super().form_valid(form)
+    
+    def get_success_url(self):
+        return reverse_lazy('blog:post_detail', kwargs={'pk': self.kwargs['post_id']})
 
 
 class CommentUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):

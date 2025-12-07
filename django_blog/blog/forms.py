@@ -113,4 +113,17 @@ class CommentForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['content'].label = 'Comment'
+        self.fields['content'].required = True
+    
+    def clean_content(self):
+        """Validate comment content"""
+        content = self.cleaned_data.get('content')
+        if content:
+            # Remove whitespace and check if content is not empty
+            content = content.strip()
+            if len(content) == 0:
+                raise forms.ValidationError("Comment cannot be empty.")
+            if len(content) < 3:
+                raise forms.ValidationError("Comment must be at least 3 characters long.")
+        return content
 

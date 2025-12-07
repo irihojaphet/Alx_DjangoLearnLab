@@ -215,7 +215,7 @@ class CommentDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
 
 # Tag and Search Views
 
-class TagPostListView(ListView):
+class PostByTagListView(ListView):
     """Display all posts with a specific tag"""
     model = Post
     template_name = 'blog/tag_posts.html'
@@ -223,8 +223,8 @@ class TagPostListView(ListView):
     paginate_by = 10
     
     def get_queryset(self):
-        tag_name = self.kwargs['tag_name']
-        self.tag = get_object_or_404(Tag, name=tag_name)
+        tag_slug = self.kwargs['tag_slug']
+        self.tag = get_object_or_404(Tag, name=tag_slug)
         return Post.objects.filter(tags=self.tag).order_by('-published_date')
     
     def get_context_data(self, **kwargs):

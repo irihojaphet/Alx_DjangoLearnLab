@@ -7,7 +7,8 @@ from django.contrib.auth.forms import AuthenticationForm
 from django.contrib import messages
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
 from django.urls import reverse_lazy
-from .models import Post, Comment
+from django.db.models import Q
+from .models import Post, Comment, Tag
 from .forms import CustomUserCreationForm, UserProfileForm, PostForm, CommentForm
 
 
@@ -210,3 +211,44 @@ class CommentDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     def delete(self, request, *args, **kwargs):
         messages.success(self.request, 'Your comment has been deleted successfully!')
         return super().delete(request, *args, **kwargs)
+
+
+# Tag and Search Views
+
+class TagPostListView(ListView):
+    """Display all posts with a specific tag"""
+    model = Post
+    template_name = 'blog/tag_posts.html'
+    context_object_name = 'posts'
+    paginate_by = 10
+    
+    def get_queryset(self):
+        tag_name = self.kwargs['tag_name']
+        self.tag = get_object_or_404(Tag, name=tag_name)
+        return Post.objects.filter(tags=self.tag).order_by('-published_date')
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['tag'] = self.tag
+        return context
+
+
+def search_posts(request):
+    """Search posts by title, content, or tags"""
+    query = request.GET.get('q', '').strip()
+    posts = Post.objects.none()
+    
+    if query:
+        # Search in title, content, and tags using Q objects
+        posts = Post.objects.filter(
+            Q(title__icontains=query) |
+            Q(content__icontains=query) |
+            Q(tags__name__icontains=query)
+        ).distinct().order_by('-published_date')
+    
+    context = {
+        'posts': posts,
+        'query': query,
+        'results_count': posts.count()
+    }
+    return render(request, 'blog/search_results.html', context)

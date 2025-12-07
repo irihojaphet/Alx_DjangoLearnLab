@@ -23,6 +23,26 @@
             <div class="error-message">{{ form.content.errors }}</div>
         {% endif %}
     </div>
+    <div class="form-group">
+        <label for="id_tags">Existing Tags:</label>
+        {{ form.tags }}
+        {% if form.tags.help_text %}
+            <small class="form-text">{{ form.tags.help_text }}</small>
+        {% endif %}
+        {% if form.tags.errors %}
+            <div class="error-message">{{ form.tags.errors }}</div>
+        {% endif %}
+    </div>
+    <div class="form-group">
+        <label for="id_new_tags">Create New Tags:</label>
+        {{ form.new_tags }}
+        {% if form.new_tags.help_text %}
+            <small class="form-text">{{ form.new_tags.help_text }}</small>
+        {% endif %}
+        {% if form.new_tags.errors %}
+            <div class="error-message">{{ form.new_tags.errors }}</div>
+        {% endif %}
+    </div>
     {% if form.non_field_errors %}
         <div class="error-message">
             {{ form.non_field_errors }}

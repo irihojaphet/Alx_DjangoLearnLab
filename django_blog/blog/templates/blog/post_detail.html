@@ -9,6 +9,15 @@
         By <strong>{{ post.author.username }}</strong> on {{ post.published_date|date:"F d, Y" }}
     </p>
     
+    {% if post.tags.all %}
+        <div class="post-tags">
+            <strong>Tags:</strong>
+            {% for tag in post.tags.all %}
+                <a href="{% url 'blog:tag_posts' tag.name %}" class="tag-link">{{ tag.name }}</a>{% if not forloop.last %}, {% endif %}
+            {% endfor %}
+        </div>
+    {% endif %}
+    
     {% if user == post.author %}
         <div class="post-actions">
             <a href="{% url 'blog:post_update' post.pk %}" class="btn btn-primary">Edit Post</a>

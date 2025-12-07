@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
-from .models import Post, Comment
+from .models import Post, Comment, Tag
 
 
 class CustomUserCreationForm(UserCreationForm):
@@ -77,7 +77,7 @@ class PostForm(forms.ModelForm):
     
     class Meta:
         model = Post
-        fields = ['title', 'content']
+        fields = ['title', 'content', 'tags']
         widgets = {
             'title': forms.TextInput(attrs={
                 'class': 'form-control',
@@ -88,12 +88,44 @@ class PostForm(forms.ModelForm):
                 'placeholder': 'Write your post content here...',
                 'rows': 15
             }),
+            'tags': forms.SelectMultiple(attrs={
+                'class': 'form-control',
+                'size': '5'
+            }),
         }
     
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['title'].label = 'Title'
         self.fields['content'].label = 'Content'
+        self.fields['tags'].label = 'Tags'
+        self.fields['tags'].required = False
+        self.fields['tags'].help_text = 'Hold Ctrl (or Cmd on Mac) to select multiple tags'
+        
+        # Add a text input for creating new tags
+        self.fields['new_tags'] = forms.CharField(
+            required=False,
+            widget=forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Enter new tags separated by commas (e.g., python, django, web)'
+            }),
+            help_text='Create new tags by entering them here, separated by commas'
+        )
+    
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        if commit:
+            instance.save()
+            self.save_m2m()
+            
+            # Handle new tags
+            new_tags_str = self.cleaned_data.get('new_tags', '')
+            if new_tags_str:
+                tag_names = [tag.strip() for tag in new_tags_str.split(',') if tag.strip()]
+                for tag_name in tag_names:
+                    tag, created = Tag.objects.get_or_create(name=tag_name.lower())
+                    instance.tags.add(tag)
+        return instance
 
 
 class CommentForm(forms.ModelForm):

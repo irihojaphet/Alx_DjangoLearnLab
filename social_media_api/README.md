@@ -210,14 +210,16 @@ The custom User model extends Django's `AbstractUser` and includes:
 
 - **bio**: TextField for user biography (optional)
 - **profile_picture**: ImageField for profile picture (optional)
-- **followers**: ManyToMany relationship to other users (asymmetric)
+- **following**: ManyToMany relationship to other users (asymmetric)
+  - `user.following.all()` - Returns users that this user follows
+  - `user.followers.all()` - Returns users that follow this user (via related_name)
 
 ### Key Features:
 
 - Username and email authentication
 - Password hashing and validation
 - Token-based authentication
-- Follower/following relationships
+- Follower/following relationships with follow/unfollow functionality
 
 ## Testing with Postman
 
@@ -684,16 +686,150 @@ GET /api/comments/?post=1
    - `Authorization: Token <your_token_here>`
 3. Send request
 
+## Follow Management API Endpoints
+
+All follow endpoints require authentication. Base URL: `http://127.0.0.1:8000/`
+
+### 1. Follow User
+
+**Endpoint:** `POST /follow/<int:user_id>/`
+
+**Description:** Follow another user. Adds the user to your following list.
+
+**Authentication Required:** Yes
+
+**Headers:**
+```
+Authorization: Token <your_token_here>
+```
+
+**Response (200 OK):**
+```json
+{
+    "message": "You are now following johndoe.",
+    "following_count": 5,
+    "followers_count": 10
+}
+```
+
+**Error Responses:**
+- `404 Not Found`: User not found
+- `400 Bad Request`: Cannot follow yourself or already following this user
+
+### 2. Unfollow User
+
+**Endpoint:** `POST /unfollow/<int:user_id>/`
+
+**Description:** Unfollow a user. Removes the user from your following list.
+
+**Authentication Required:** Yes
+
+**Headers:**
+```
+Authorization: Token <your_token_here>
+```
+
+**Response (200 OK):**
+```json
+{
+    "message": "You have unfollowed johndoe.",
+    "following_count": 4,
+    "followers_count": 9
+}
+```
+
+**Error Responses:**
+- `404 Not Found`: User not found
+- `400 Bad Request`: Not following this user
+
+## Feed API Endpoint
+
+**Endpoint:** `GET /api/feed/`
+
+**Description:** Retrieve a paginated feed of posts from users that the current user follows. Posts are ordered by creation date, with the most recent posts appearing first.
+
+**Authentication Required:** Yes
+
+**Headers:**
+```
+Authorization: Token <your_token_here>
+```
+
+**Query Parameters:**
+- `page`: Page number for pagination (default: 1)
+
+**Response (200 OK):**
+```json
+{
+    "count": 25,
+    "next": "/api/feed/?page=2",
+    "previous": null,
+    "results": [
+        {
+            "id": 1,
+            "author": "johndoe",
+            "title": "My Latest Post",
+            "content": "This is the content of my latest post...",
+            "created_at": "2024-01-15T10:30:00Z",
+            "updated_at": "2024-01-15T10:30:00Z",
+            "comments_count": 3
+        }
+    ]
+}
+```
+
+**Note:** If you're not following any users, the feed will return an empty results array.
+
+## User Model Updates
+
+The User model has been updated to include a `following` field:
+
+- **following**: ManyToMany relationship to other users (asymmetric)
+  - `user.following.all()` - Returns users that this user follows
+  - `user.followers.all()` - Returns users that follow this user (via related_name)
+
+### Migration Notes
+
+The User model field was renamed from `followers` to `following` to better reflect its purpose. The migration `0002_remove_user_followers_user_following` handles this change.
+
+## Testing Follow and Feed Features with Postman
+
+### 1. Follow a User
+
+1. Create a POST request to `http://127.0.0.1:8000/follow/2/` (replace 2 with the user ID you want to follow)
+2. Set Headers:
+   - `Authorization: Token <your_token_here>`
+3. Send request
+4. You should receive a success message with updated counts
+
+### 2. Unfollow a User
+
+1. Create a POST request to `http://127.0.0.1:8000/unfollow/2/` (replace 2 with the user ID you want to unfollow)
+2. Set Headers:
+   - `Authorization: Token <your_token_here>`
+3. Send request
+4. You should receive a success message with updated counts
+
+### 3. View Your Feed
+
+1. Create a GET request to `http://127.0.0.1:8000/api/feed/`
+2. Set Headers:
+   - `Authorization: Token <your_token_here>`
+3. Optionally add query parameter:
+   - `?page=1` - Page number
+4. Send request
+5. You should see posts from users you follow, ordered by most recent first
+
 ## Next Steps
 
 Future enhancements may include:
 
 - Like/unlike functionality for posts and comments
-- Follow/unfollow endpoints
 - User search and discovery
 - Media upload handling for posts
 - Post categories and tags
 - Notifications system
+- Feed filtering and sorting options
 
 ## License
 

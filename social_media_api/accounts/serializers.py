@@ -78,8 +78,8 @@ class UserProfileSerializer(serializers.ModelSerializer):
         read_only_fields = ('id', 'username', 'date_joined')
 
     def get_followers_count(self, obj):
-        return obj.following.count()
+        return obj.followers.count()
 
     def get_following_count(self, obj):
-        return obj.followers.count()
+        return obj.following.count()
 

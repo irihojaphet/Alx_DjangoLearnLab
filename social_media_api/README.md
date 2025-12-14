@@ -12,7 +12,11 @@ This project is the foundation for a Social Media API, focusing on user authenti
 - User Registration with token generation
 - User Login with token authentication
 - User Profile Management (GET, PUT, PATCH)
+- Post Creation and Management (CRUD operations)
+- Comment System for Posts
+- Pagination and Filtering for Posts
 - Token-based Authentication using Django REST Framework
+- Permission-based Access Control (users can only edit/delete their own content)
 
 ## Project Structure
 
@@ -23,6 +27,13 @@ social_media_api/
 │   ├── views.py          # API views (register, login, profile)
 │   ├── serializers.py    # DRF serializers
 │   ├── urls.py           # URL routing
+│   └── admin.py          # Admin configuration
+├── posts/                 # Posts and comments app
+│   ├── models.py         # Post and Comment models
+│   ├── views.py          # ViewSets for posts and comments
+│   ├── serializers.py    # DRF serializers
+│   ├── urls.py           # URL routing with routers
+│   ├── permissions.py    # Custom permissions
 │   └── admin.py          # Admin configuration
 ├── social_media_api/      # Project settings
 │   ├── settings.py       # Django configuration
@@ -289,16 +300,400 @@ python manage.py makemigrations
 python manage.py migrate
 ```
 
+## Posts API Endpoints
+
+All posts endpoints require authentication. Base URL: `http://127.0.0.1:8000/api/posts/`
+
+### 1. List Posts
+
+**Endpoint:** `GET /api/posts/`
+
+**Description:** Retrieve a paginated list of all posts. Supports search and filtering.
+
+**Authentication Required:** Yes
+
+**Query Parameters:**
+- `search`: Search posts by title or content (e.g., `?search=django`)
+- `ordering`: Order results by field (e.g., `?ordering=-created_at`, `?ordering=title`)
+- `page`: Page number for pagination (default: 1)
+
+**Response (200 OK):**
+```json
+{
+    "count": 25,
+    "next": "http://127.0.0.1:8000/api/posts/?page=2",
+    "previous": null,
+    "results": [
+        {
+            "id": 1,
+            "author": "johndoe",
+            "title": "My First Post",
+            "content": "This is the content of my first post...",
+            "created_at": "2024-01-15T10:30:00Z",
+            "updated_at": "2024-01-15T10:30:00Z",
+            "comments_count": 3
+        }
+    ]
+}
+```
+
+### 2. Create Post
+
+**Endpoint:** `POST /api/posts/`
+
+**Description:** Create a new post. The author is automatically set to the authenticated user.
+
+**Authentication Required:** Yes
+
+**Request Body:**
+```json
+{
+    "title": "My First Post",
+    "content": "This is the content of my first post..."
+}
+```
+
+**Response (201 Created):**
+```json
+{
+    "id": 1,
+    "author": "johndoe",
+    "title": "My First Post",
+    "content": "This is the content of my first post...",
+    "created_at": "2024-01-15T10:30:00Z",
+    "updated_at": "2024-01-15T10:30:00Z",
+    "comments": [],
+    "comments_count": 0
+}
+```
+
+### 3. Retrieve Post
+
+**Endpoint:** `GET /api/posts/{id}/`
+
+**Description:** Retrieve a specific post with all its comments.
+
+**Authentication Required:** Yes
+
+**Response (200 OK):**
+```json
+{
+    "id": 1,
+    "author": "johndoe",
+    "title": "My First Post",
+    "content": "This is the content of my first post...",
+    "created_at": "2024-01-15T10:30:00Z",
+    "updated_at": "2024-01-15T10:30:00Z",
+    "comments": [
+        {
+            "id": 1,
+            "post": 1,
+            "author": "janedoe",
+            "content": "Great post!",
+            "created_at": "2024-01-15T11:00:00Z",
+            "updated_at": "2024-01-15T11:00:00Z"
+        }
+    ],
+    "comments_count": 1
+}
+```
+
+### 4. Update Post
+
+**Endpoint:** `PUT /api/posts/{id}/` or `PATCH /api/posts/{id}/`
+
+**Description:** Update a post. Only the post author can update their own posts.
+
+**Authentication Required:** Yes
+
+**Request Body:**
+```json
+{
+    "title": "Updated Post Title",
+    "content": "Updated content..."
+}
+```
+
+**Response (200 OK):**
+```json
+{
+    "id": 1,
+    "author": "johndoe",
+    "title": "Updated Post Title",
+    "content": "Updated content...",
+    "created_at": "2024-01-15T10:30:00Z",
+    "updated_at": "2024-01-15T12:00:00Z",
+    "comments": [],
+    "comments_count": 0
+}
+```
+
+### 5. Delete Post
+
+**Endpoint:** `DELETE /api/posts/{id}/`
+
+**Description:** Delete a post. Only the post author can delete their own posts.
+
+**Authentication Required:** Yes
+
+**Response (204 No Content)**
+
+### 6. Get Post Comments
+
+**Endpoint:** `GET /api/posts/{id}/comments/`
+
+**Description:** Retrieve all comments for a specific post.
+
+**Authentication Required:** Yes
+
+**Response (200 OK):**
+```json
+[
+    {
+        "id": 1,
+        "post": 1,
+        "author": "janedoe",
+        "content": "Great post!",
+        "created_at": "2024-01-15T11:00:00Z",
+        "updated_at": "2024-01-15T11:00:00Z"
+    }
+]
+```
+
+## Comments API Endpoints
+
+All comments endpoints require authentication. Base URL: `http://127.0.0.1:8000/api/comments/`
+
+### 1. List Comments
+
+**Endpoint:** `GET /api/comments/`
+
+**Description:** Retrieve a paginated list of all comments. Can be filtered by post.
+
+**Authentication Required:** Yes
+
+**Query Parameters:**
+- `post`: Filter comments by post ID (e.g., `?post=1`)
+- `ordering`: Order results by field (e.g., `?ordering=-created_at`)
+- `page`: Page number for pagination (default: 1)
+
+**Response (200 OK):**
+```json
+{
+    "count": 10,
+    "next": null,
+    "previous": null,
+    "results": [
+        {
+            "id": 1,
+            "post": 1,
+            "author": "janedoe",
+            "content": "Great post!",
+            "created_at": "2024-01-15T11:00:00Z",
+            "updated_at": "2024-01-15T11:00:00Z"
+        }
+    ]
+}
+```
+
+### 2. Create Comment
+
+**Endpoint:** `POST /api/comments/`
+
+**Description:** Create a new comment on a post. The author is automatically set to the authenticated user.
+
+**Authentication Required:** Yes
+
+**Request Body:**
+```json
+{
+    "post": 1,
+    "content": "This is a great post!"
+}
+```
+
+**Response (201 Created):**
+```json
+{
+    "id": 1,
+    "post": 1,
+    "author": "janedoe",
+    "content": "This is a great post!",
+    "created_at": "2024-01-15T11:00:00Z",
+    "updated_at": "2024-01-15T11:00:00Z"
+}
+```
+
+### 3. Retrieve Comment
+
+**Endpoint:** `GET /api/comments/{id}/`
+
+**Description:** Retrieve a specific comment.
+
+**Authentication Required:** Yes
+
+**Response (200 OK):**
+```json
+{
+    "id": 1,
+    "post": 1,
+    "author": "janedoe",
+    "content": "This is a great post!",
+    "created_at": "2024-01-15T11:00:00Z",
+    "updated_at": "2024-01-15T11:00:00Z"
+}
+```
+
+### 4. Update Comment
+
+**Endpoint:** `PUT /api/comments/{id}/` or `PATCH /api/comments/{id}/`
+
+**Description:** Update a comment. Only the comment author can update their own comments.
+
+**Authentication Required:** Yes
+
+**Request Body:**
+```json
+{
+    "content": "Updated comment content"
+}
+```
+
+**Response (200 OK):**
+```json
+{
+    "id": 1,
+    "post": 1,
+    "author": "janedoe",
+    "content": "Updated comment content",
+    "created_at": "2024-01-15T11:00:00Z",
+    "updated_at": "2024-01-15T12:00:00Z"
+}
+```
+
+### 5. Delete Comment
+
+**Endpoint:** `DELETE /api/comments/{id}/`
+
+**Description:** Delete a comment. Only the comment author can delete their own comments.
+
+**Authentication Required:** Yes
+
+**Response (204 No Content)**
+
+## Pagination
+
+All list endpoints support pagination with a default page size of 10 items. The response includes:
+- `count`: Total number of items
+- `next`: URL to the next page (null if last page)
+- `previous`: URL to the previous page (null if first page)
+- `results`: Array of items for the current page
+
+**Example:**
+```
+GET /api/posts/?page=2
+```
+
+## Filtering and Search
+
+### Post Search
+
+Search posts by title or content:
+```
+GET /api/posts/?search=django
+```
+
+### Post Ordering
+
+Order posts by different fields:
+```
+GET /api/posts/?ordering=-created_at  # Newest first
+GET /api/posts/?ordering=title        # Alphabetical by title
+GET /api/posts/?ordering=created_at   # Oldest first
+```
+
+### Comment Filtering
+
+Filter comments by post:
+```
+GET /api/comments/?post=1
+```
+
+## Permissions
+
+- **Read Operations**: All authenticated users can view posts and comments
+- **Create Operations**: All authenticated users can create posts and comments
+- **Update/Delete Operations**: Only the author of a post or comment can update or delete it
+
+## Testing Posts and Comments with Postman
+
+### 1. Create a Post
+
+1. Create a POST request to `http://127.0.0.1:8000/api/posts/`
+2. Set Headers:
+   - `Content-Type: application/json`
+   - `Authorization: Token <your_token_here>`
+3. Add JSON body:
+   ```json
+   {
+       "title": "My First Post",
+       "content": "This is my first post content"
+   }
+   ```
+4. Send request
+
+### 2. List Posts
+
+1. Create a GET request to `http://127.0.0.1:8000/api/posts/`
+2. Set Headers:
+   - `Authorization: Token <your_token_here>`
+3. Optionally add query parameters:
+   - `?search=django` - Search posts
+   - `?ordering=-created_at` - Order by newest first
+   - `?page=1` - Page number
+4. Send request
+
+### 3. Create a Comment
+
+1. Create a POST request to `http://127.0.0.1:8000/api/comments/`
+2. Set Headers:
+   - `Content-Type: application/json`
+   - `Authorization: Token <your_token_here>`
+3. Add JSON body:
+   ```json
+   {
+       "post": 1,
+       "content": "This is a great post!"
+   }
+   ```
+4. Send request
+
+### 4. Update a Post
+
+1. Create a PUT or PATCH request to `http://127.0.0.1:8000/api/posts/1/`
+2. Set Headers:
+   - `Content-Type: application/json`
+   - `Authorization: Token <your_token_here>`
+3. Add JSON body with fields to update
+4. Send request
+
+### 5. Delete a Comment
+
+1. Create a DELETE request to `http://127.0.0.1:8000/api/comments/1/`
+2. Set Headers:
+   - `Authorization: Token <your_token_here>`
+3. Send request
+
 ## Next Steps
 
-This is the foundation for the Social Media API. Future enhancements may include:
+Future enhancements may include:
 
-- Post creation and management
-- Comments system
-- Like/unlike functionality
+- Like/unlike functionality for posts and comments
 - Follow/unfollow endpoints
 - User search and discovery
-- Media upload handling
+- Media upload handling for posts
+- Post categories and tags
+- Notifications system
 
 ## License
 

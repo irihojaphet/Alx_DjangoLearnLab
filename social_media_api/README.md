@@ -820,15 +820,226 @@ The User model field was renamed from `followers` to `following` to better refle
 4. Send request
 5. You should see posts from users you follow, ordered by most recent first
 
+## Likes API Endpoints
+
+All likes endpoints require authentication. Base URL: `http://127.0.0.1:8000/api/posts/`
+
+### 1. Like a Post
+
+**Endpoint:** `POST /api/posts/{id}/like/`
+
+**Description:** Like a post. Creates a notification for the post author.
+
+**Authentication Required:** Yes
+
+**Headers:**
+```
+Authorization: Token <your_token_here>
+```
+
+**Response (201 Created):**
+```json
+{
+    "message": "Post liked successfully.",
+    "likes_count": 5
+}
+```
+
+**Error Responses:**
+- `400 Bad Request`: Already liked this post
+
+### 2. Unlike a Post
+
+**Endpoint:** `POST /api/posts/{id}/unlike/`
+
+**Description:** Unlike a post that you previously liked.
+
+**Authentication Required:** Yes
+
+**Headers:**
+```
+Authorization: Token <your_token_here>
+```
+
+**Response (200 OK):**
+```json
+{
+    "message": "Post unliked successfully.",
+    "likes_count": 4
+}
+```
+
+**Error Responses:**
+- `400 Bad Request`: You have not liked this post
+
+## Notifications API Endpoints
+
+All notifications endpoints require authentication. Base URL: `http://127.0.0.1:8000/api/notifications/`
+
+### 1. List Notifications
+
+**Endpoint:** `GET /api/notifications/`
+
+**Description:** Retrieve a paginated list of notifications for the current user. Notifications are ordered by timestamp, with the most recent first.
+
+**Authentication Required:** Yes
+
+**Headers:**
+```
+Authorization: Token <your_token_here>
+```
+
+**Query Parameters:**
+- `page`: Page number for pagination (default: 1)
+
+**Response (200 OK):**
+```json
+{
+    "count": 15,
+    "next": "http://127.0.0.1:8000/api/notifications/?page=2",
+    "previous": null,
+    "results": [
+        {
+            "id": 1,
+            "recipient": "johndoe",
+            "actor": "janedoe",
+            "verb": "liked your post",
+            "target_content_type": 8,
+            "target_object_id": 1,
+            "timestamp": "2024-01-15T10:30:00Z",
+            "read": false
+        }
+    ]
+}
+```
+
+### 2. Retrieve Notification
+
+**Endpoint:** `GET /api/notifications/{id}/`
+
+**Description:** Retrieve a specific notification.
+
+**Authentication Required:** Yes
+
+**Response (200 OK):**
+```json
+{
+    "id": 1,
+    "recipient": "johndoe",
+    "actor": "janedoe",
+    "verb": "liked your post",
+    "target_content_type": 8,
+    "target_object_id": 1,
+    "timestamp": "2024-01-15T10:30:00Z",
+    "read": false
+}
+```
+
+### 3. Mark Notification as Read
+
+**Endpoint:** `POST /api/notifications/{id}/mark_read/`
+
+**Description:** Mark a specific notification as read.
+
+**Authentication Required:** Yes
+
+**Response (200 OK):**
+```json
+{
+    "message": "Notification marked as read."
+}
+```
+
+### 4. Mark All Notifications as Read
+
+**Endpoint:** `POST /api/notifications/mark_all_read/`
+
+**Description:** Mark all unread notifications for the current user as read.
+
+**Authentication Required:** Yes
+
+**Response (200 OK):**
+```json
+{
+    "message": "All notifications marked as read."
+}
+```
+
+## Notification Types
+
+The system automatically creates notifications for the following actions:
+
+1. **New Follower**: When someone follows you (`verb: "started following you"`)
+2. **Post Liked**: When someone likes your post (`verb: "liked your post"`)
+3. **Post Commented**: When someone comments on your post (`verb: "commented on your post"`)
+
+## Testing Likes and Notifications with Postman
+
+### 1. Like a Post
+
+1. Create a POST request to `http://127.0.0.1:8000/api/posts/1/like/`
+2. Set Headers:
+   - `Authorization: Token <your_token_here>`
+3. Send request
+4. You should receive a success message with the updated likes count
+
+### 2. View Notifications
+
+1. Create a GET request to `http://127.0.0.1:8000/api/notifications/`
+2. Set Headers:
+   - `Authorization: Token <your_token_here>`
+3. Optionally add query parameter:
+   - `?page=1` - Page number
+4. Send request
+5. You should see your notifications, ordered by most recent first
+
+### 3. Mark Notification as Read
+
+1. Create a POST request to `http://127.0.0.1:8000/api/notifications/1/mark_read/`
+2. Set Headers:
+   - `Authorization: Token <your_token_here>`
+3. Send request
+4. The notification will be marked as read
+
+### 4. Mark All Notifications as Read
+
+1. Create a POST request to `http://127.0.0.1:8000/api/notifications/mark_all_read/`
+2. Set Headers:
+   - `Authorization: Token <your_token_here>`
+3. Send request
+4. All your unread notifications will be marked as read
+
+## Models
+
+### Like Model
+
+The Like model tracks which users have liked which posts:
+
+- **post**: ForeignKey to Post
+- **user**: ForeignKey to User
+- **created_at**: Timestamp when the like was created
+- **unique_together**: Ensures a user can only like a post once
+
+### Notification Model
+
+The Notification model tracks user notifications:
+
+- **recipient**: ForeignKey to User (who receives the notification)
+- **actor**: ForeignKey to User (who performed the action)
+- **verb**: CharField describing the action (e.g., "liked your post")
+- **target**: GenericForeignKey to the related object (post, comment, etc.)
+- **timestamp**: Timestamp when the notification was created
+- **read**: Boolean indicating if the notification has been read
+
 ## Next Steps
 
 Future enhancements may include:
 
-- Like/unlike functionality for posts and comments
 - User search and discovery
 - Media upload handling for posts
 - Post categories and tags
-- Notifications system
+- Notification preferences/settings
+- Real-time notifications via WebSockets
 - Feed filtering and sorting options
 
 ## License
